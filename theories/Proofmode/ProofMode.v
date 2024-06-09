@@ -137,12 +137,12 @@ Instance prv_WeakClass `{funcs_signature, preds_signature, falsity_flag, peirce}
 (* TODO: Why doesn't this exist? *)
 
 #[global]
-Instance eq_dec_full_operators : eq_dec binop. unfold dec; decide equality. Qed.
+Instance eq_dec_full_operators : EqDec binop. unfold EqDec, dec; decide equality. Qed.
 #[global]
-Instance eq_dec_full_logic_quant : eq_dec quantop. unfold dec; decide equality. Qed.
+Instance eq_dec_full_logic_quant : EqDec quantop. unfold EqDec, dec; decide equality. Qed.
 
 #[global]
-Instance tprv_DeductionRules `{funcs_signature, preds_signature, falsity_flag, peirce, eq_dec syms, eq_dec preds} : DeductionRules theory tprv (fun a b => extend b a) mapT (fun a b => in_theory b a) := 
+Instance tprv_DeductionRules `{funcs_signature, preds_signature, falsity_flag, peirce, EqDec syms, EqDec preds} : DeductionRules theory tprv (fun a b => extend b a) mapT (fun a b => in_theory b a) := 
 {| 
   II := Theories.T_II ;
   IE := Theories.T_IE ;
@@ -476,11 +476,11 @@ Ltac make_compatible tac :=
       | _ => idtac 
       end;
       try update_binder_names (* [try] because some tactics add normal Coq goals *)
-  | [ |- @tpm _ _ ?p ?C _ ] => 
+  | [ |- @tpm _ _ _ ?p ?C _ ] => 
       fstop;
       tac C;
       match goal with 
-      | [ |- tprv _ ?G ] => change (@tpm _ _ p C G)
+      | [ |- tprv _ ?G ] => change (@tpm _ _ _ p C G)
       | _ => idtac 
       end;
       try update_binder_names (* [try] because some tactics add normal Coq goals *)
@@ -500,11 +500,11 @@ Ltac make_compatible_light tac :=
       | [ |- prv _ ?G ] => change (@pm _ _ _ p C G)
       | _ => idtac 
       end
-  | [ |- @tpm _ _ ?p ?C _ ] => 
+  | [ |- @tpm _ _ _ ?p ?C _ ] => 
       fstop;
       tac C;
       match goal with 
-      | [ |- tprv _ ?G ] => change (@tpm _ _ p C G)
+      | [ |- tprv _ ?G ] => change (@tpm _ _ _ p C G)
       | _ => idtac 
       end
   end.
@@ -815,8 +815,8 @@ Section Fintro.
     eapply Weak in Ht. eapply IE. apply Ht. ctx. firstorder.
   Qed.
 
-  Context {eq_dec_Funcs : eq_dec syms}.
-  Context {eq_dec_Preds : eq_dec preds}.
+  Context {eq_dec_Funcs : EqDec syms}.
+  Context {eq_dec_Preds : EqDec preds}.
 
   Lemma intro_and_destruct_T T s t G :
     T ⊩ (s → t → G) -> T ⊩ (s ∧ t → G).
@@ -1211,8 +1211,8 @@ Section Fapply.
     intros. apply (IE (phi := psi)). eapply CE2. apply H. apply H0.
   Qed.
 
-  Context {eq_dec_Funcs : eq_dec syms}.
-  Context {eq_dec_Preds : eq_dec preds}.
+  Context {eq_dec_Funcs : EqDec syms}.
+  Context {eq_dec_Preds : EqDec preds}.
 
   Lemma fapply_equiv_l_T A phi psi :
     A ⊩ (phi ↔ psi) -> A ⊩ phi -> A ⊩ psi.
@@ -1497,8 +1497,8 @@ Section Fassert.
     intros H1 H2. eapply IE. exact H2. exact H1.
   Qed.
 
-  Context {eq_dec_Funcs : eq_dec syms}.
-  Context {eq_dec_Preds : eq_dec preds}.
+  Context {eq_dec_Funcs : EqDec syms}.
+  Context {eq_dec_Preds : EqDec preds}.
 
   Lemma fassert_help_T `{peirce} A phi psi :
     A ⊩ phi -> A ⊩ (phi → psi) -> A ⊩ psi.
@@ -1585,8 +1585,8 @@ Section Fdestruct.
     intros H1 H2. fintros. fapply H2. fapply 0. eapply Weak. apply H1. firstorder.
   Qed.
 
-  Context {eq_dec_Funcs : eq_dec syms}.
-  Context {eq_dec_Preds : eq_dec preds}.
+  Context {eq_dec_Funcs : EqDec syms}.
+  Context {eq_dec_Preds : EqDec preds}.
 
   Lemma fdestruct_discharge_premises_T T a b c :
     T ⊩ a -> T ⊩ (b → c) -> T ⊩ ((a → b) → c).
@@ -1720,8 +1720,8 @@ Section Classical.
     apply Ctx. now left.
   Qed.
 
-  Context {eq_dec_Funcs : eq_dec syms}.
-  Context {eq_dec_Preds : eq_dec preds}.
+  Context {eq_dec_Funcs : EqDec syms}.
+  Context {eq_dec_Preds : EqDec preds}.
 
   Lemma case_help_T A phi psi :
     A ⊩C (phi ∨ (phi → ⊥) → psi) -> A ⊩C psi.

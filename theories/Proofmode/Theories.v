@@ -45,12 +45,12 @@ Context {p : peirce}.
 
 Definition mapT (f : form -> form) (T : theory) : theory := fun phi => exists psi, T psi /\ f psi = phi.
 
-Context {eq_dec_Funcs : eq_dec syms}.
-Context {eq_dec_Preds : eq_dec preds}.
-Context {eq_dec_binop : eq_dec binop}.
-Context {eq_dec_quantop : eq_dec quantop}.
+Context {eq_dec_Funcs : EqDec syms}.
+Context {eq_dec_Preds : EqDec preds}.
+Context {eq_dec_binop : EqDec binop}.
+Context {eq_dec_quantop : EqDec quantop}.
 
-Definition rem := @remove form (dec_form _ _ _ _).
+Definition rem := @remove form (dec_form eq_dec_Funcs eq_dec_Preds eq_dec_binop eq_dec_quantop).
 
 
 Theorem WeakT A B phi :
