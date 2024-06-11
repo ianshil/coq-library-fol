@@ -75,6 +75,37 @@ Proof.
 Qed.
 
 
+(* The same also works in theories *)
+
+Definition FAeqT phi := In phi FAeq.
+
+Goal forall T a b c, T ⊩ (a → (a → b) → (b → c) → c).
+Proof.
+  intros. fstart. fintros. fapply "H1". fapply "H0". fapply "H".
+Qed.
+
+Lemma num_add_homomorphism_T x y :
+  FAeqT ⊩ (num x ⊕ num y == num (x + y)).
+Proof.
+  induction x; cbn.
+  - fapply ax_add_zero. (* Arguments are infered! *)
+  - feapply ax_trans.
+    + fapply ax_add_rec.
+    + feapply ax_succ_congr. exact IHx.
+Qed.
+
+Lemma num_mult_homomorphism_T x y : 
+  FAeqT ⊩ ( num x ⊗ num y == num (x * y) ).
+Proof.
+  induction x; cbn.
+  - fapply ax_mult_zero.
+  - feapply ax_trans.
+    + feapply ax_trans.
+      * fapply ax_mult_rec.
+      * feapply ax_add_congr. fapply ax_refl. exact IHx.
+    + apply num_add_homomorphism_T.
+Qed.
+
 
 (* Setup rewriting *)
 
