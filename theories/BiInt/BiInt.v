@@ -39,8 +39,11 @@ Module BiIntSyntax.
   Notation "A ∧ B" := (@bin _ _ full_operators _ Conj A B) (at level 41) : full_syntax.
   Notation "A ∨ B" := (@bin _ _ full_operators _ Disj A B) (at level 42) : full_syntax.
   Notation "A → B" := (@bin _ _ full_operators _ Impl A B) (at level 43, right associativity) : full_syntax.
+  Notation "A '--<' B" := (@bin _ _ full_operators _ Excl A B) (at level 43, right associativity) : full_syntax.
   Notation "⊥" := (falsity) : full_syntax.
   Notation "¬ A" := (A → ⊥) (at level 42) : full_syntax.
+  Notation "⊤" := (⊥ → ⊥) : full_syntax.
+  Notation "∞ A" := (⊤ --< A) (at level 42) : full_syntax.
   Notation "A ↔ B" := ((A → B) ∧ (B → A)) (at level 43) : full_syntax.
 
   Fixpoint impl {Σ_funcs : funcs_signature} {Σ_preds : preds_signature} {ff : falsity_flag} (A : list form) phi :=

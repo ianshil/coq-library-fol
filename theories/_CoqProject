@@ -80,5 +80,9 @@ Tennenbaum/HA_insep.v
 Tennenbaum/Variants.v
 Tennenbaum/Abstract_coding.v
 
+BiInt/ExistsT.v
+BiInt/Gen.v
+BiInt/GenT.v
 BiInt/BiInt.v
 BiInt/KripkeSemantics.v
+BiInt/SyntaxFeatures.v
