@@ -186,8 +186,8 @@ End Conseq_Rel.
 
 End Kripke.
 
-  Notation " rho '⊩(' u ')'  phi" := (@ksat _ _ _ u rho phi) (at level 20).
-  Notation " rho '⊩(' u , M ')' phi" := (@ksat _ _ M u rho phi) (at level 20).
+  Notation " rho '⊩(' u ')'  phi" := (@ksat _ _ _ _ u rho phi) (at level 20).
+  Notation " rho '⊩(' u , M ')' phi" := (@ksat _ _ M _ u rho phi) (at level 20).
   Arguments ksat {_ _ _ _} _ _ _.
 
 

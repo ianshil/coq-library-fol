@@ -84,5 +84,11 @@ BiInt/ExistsT.v
 BiInt/Gen.v
 BiInt/GenT.v
 BiInt/BiInt.v
-BiInt/KripkeSemantics.v
 BiInt/SyntaxFeatures.v
+BiInt/RemoveList.v
+BiInt/KripkeSemantics.v
+BiInt/HilbertCalc.v
+BiInt/LogicProp.v
+BiInt/Properties.v
+BiInt/Soundness.v
+BiInt/StandardLindenbaum.v
