@@ -203,20 +203,21 @@ Definition shift_P P n :=
     | S n' => P n'
     end.
 
-Lemma subst_unused_form {ff : falsity_flag} xi sigma P phi :
+Lemma subst_unused_form xi sigma P phi :
     (forall x, (P x) \/ (~ P x)) -> (forall m, ~ P m -> xi m = sigma m) -> (forall m, P m -> unused m phi) ->
     subst_form xi phi = subst_form sigma phi.
 Proof.
-(* induction phi in xi,sigma,P |-*; intros Hdec Hext Hunused; cbn; cbn ; auto.
-  - f_equal. apply vec_map_ext. intros s H. apply (subst_unused_term _ _ _ _ Hdec Hext).
+  revert xi sigma P. induction phi using form_ind_falsity;
+    intros xi sigma P Hdec Hext Hunused; cbn; cbn ; auto.
+  - f_equal. apply vec_map_ext. intros s H. apply (subst_unused_term  Hdec Hext).
     intros m H' % Hunused. inv H'. apply H1 ; auto. apply vec_in_VectorIn_term ; auto.
   - rewrite IHphi1 with (sigma := sigma) (P := P). rewrite IHphi2 with (sigma := sigma) (P := P).
-    all: try tauto. all: intros m H % Hunused; now inversion H.
+    all: try tauto. all: intros m H % Hunused; inversion H; repeat resolve_existT; auto.
   - erewrite IHphi with (P := shift_P P). 1: reflexivity.
     + intros [| x]; [now right| now apply Hdec].
     + intros [| m]; [reflexivity|]. intros Heq % Hext; unfold ">>"; cbn. unfold ">>". rewrite Heq ; auto.
-    + intros [| m]; [destruct 1| ]. intros H % Hunused; now inversion H. *)
-Admitted.
+    + intros [| m]; [destruct 1| ]. intros H % Hunused; inversion H; repeat resolve_existT; auto.
+Qed.
 
 Lemma subst_unused_single xi sigma n phi :
     unused n phi -> (forall m, n <> m -> xi m = sigma m) -> subst_form xi phi = subst_form sigma phi.
@@ -313,20 +314,19 @@ Qed.
 
 Lemma form_unused : forall (A : form), (exists n, (unused n A) /\ forall m, n <= m -> unused m A).
 Proof.
-(* intros. induction A.
-- exists 0. split. apply uf_⊥. intros. apply uf_⊥.
-- exists 0. split. apply uf_top. intros. apply uf_top.
-- pose (VectorDef.to_list t).
-  assert (forall t : term, List.In t l -> exists m : nat, unused_term m t /\ (forall n, m <= n -> unused_term n t)).
-  intros. apply term_infinite_unused. apply max_list_infinite_unused in H. destruct H. exists x. split.
-  apply uf_atom. intros. apply VectorSpec.to_list_In in H0. pose (H t0). destruct a ; auto. intros. apply uf_atom. intros.
-  apply VectorSpec.to_list_In in H1. pose (H t0). destruct a ; auto.
-- destruct IHA1. destruct H. destruct IHA2. destruct H1.
-  exists (max x0 x). split. apply uf_bin. apply H0 ; lia. apply H2 ; lia. intros.
-  apply uf_bin. apply H0 ; lia. apply H2 ; lia.
-- destruct IHA. destruct H. exists x. split. apply uf_quant. apply H0. lia. intros.
-  apply uf_quant. apply H0. lia. *)
-Admitted.
+  intros. induction A using form_ind_falsity.
+  - exists 0. split. apply uf_bot. intros. apply uf_bot.
+  - pose (VectorDef.to_list t).
+    assert (forall t : term, List.In t l -> exists m : nat, unused_term m t /\ (forall n, m <= n -> unused_term n t)).
+    intros. apply term_infinite_unused. apply max_list_infinite_unused in H. destruct H. exists x. split.
+    apply uf_atom. intros. apply VectorSpec.to_list_In in H0. pose (H t0). destruct a ; auto. intros. apply uf_atom. intros.
+    apply VectorSpec.to_list_In in H1. pose (H t0). destruct a ; auto.
+  - destruct IHA1. destruct H. destruct IHA2. destruct H1.
+    exists (max x0 x). split. apply uf_bin. apply H0 ; lia. apply H2 ; lia. intros.
+    apply uf_bin. apply H0 ; lia. apply H2 ; lia.
+  - destruct IHA. destruct H. exists x. split. apply uf_quant. apply H0. lia. intros.
+    apply uf_quant. apply H0. lia.
+Qed.
 
 Lemma form_exists_unused : forall (A : form), exists n, unused n A.
 Proof.
