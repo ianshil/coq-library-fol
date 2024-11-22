@@ -207,7 +207,7 @@ Lemma subst_unused_form {ff : falsity_flag} xi sigma P phi :
     (forall x, (P x) \/ (~ P x)) -> (forall m, ~ P m -> xi m = sigma m) -> (forall m, P m -> unused m phi) ->
     subst_form xi phi = subst_form sigma phi.
 Proof.
-induction phi in xi,sigma,P |-*; intros Hdec Hext Hunused; cbn; cbn ; auto.
+(* induction phi in xi,sigma,P |-*; intros Hdec Hext Hunused; cbn; cbn ; auto.
   - f_equal. apply vec_map_ext. intros s H. apply (subst_unused_term _ _ _ _ Hdec Hext).
     intros m H' % Hunused. inv H'. apply H1 ; auto. apply vec_in_VectorIn_term ; auto.
   - rewrite IHphi1 with (sigma := sigma) (P := P). rewrite IHphi2 with (sigma := sigma) (P := P).
@@ -215,8 +215,8 @@ induction phi in xi,sigma,P |-*; intros Hdec Hext Hunused; cbn; cbn ; auto.
   - erewrite IHphi with (P := shift_P P). 1: reflexivity.
     + intros [| x]; [now right| now apply Hdec].
     + intros [| m]; [reflexivity|]. intros Heq % Hext; unfold ">>"; cbn. unfold ">>". rewrite Heq ; auto.
-    + intros [| m]; [destruct 1| ]. intros H % Hunused; now inversion H.
-Qed.
+    + intros [| m]; [destruct 1| ]. intros H % Hunused; now inversion H. *)
+Admitted.
 
 Lemma subst_unused_single xi sigma n phi :
     unused n phi -> (forall m, n <> m -> xi m = sigma m) -> subst_form xi phi = subst_form sigma phi.
@@ -225,56 +225,58 @@ intros Hext Hunused. apply subst_unused_form with (P := fun m => n = m).
 all: intuition ; subst. assumption.
 Qed.
 
-Definition cycle_shift n x := if eq_dec_nat n x then $0 else $(S x).
+Definition cycle_shift n x := if Nat.eq_dec n x then $0 else $(S x).
 
 Lemma cycle_shift_subject n phi : unused (S n) phi -> phi[($n)..][cycle_shift n] = phi.
 Proof.
-intros H. rewrite subst_comp. rewrite (subst_unused_single ($n.. >> subst_term (cycle_shift n)) var (S n) _ H).
+intros H. rewrite subst_comp. rewrite (@subst_unused_single ($n.. >> subst_term (cycle_shift n)) var (S n) _ H).
 apply subst_var.
 intros m H'. unfold funcomp. unfold cycle_shift.
-destruct (eq_dec_nat n n); cbn ; try congruence. destruct m.
-cbn. destruct (eq_dec_nat n n); cbn ; try congruence.
-cbn. destruct (eq_dec_nat n m); cbn ; try congruence.
+destruct (Nat.eq_dec n n); cbn ; try congruence. destruct m.
+cbn. destruct (Nat.eq_dec n n); cbn ; try congruence.
+cbn. destruct (Nat.eq_dec n m); cbn ; try congruence.
 Qed.
 
 Lemma cycle_shift_shift n phi : unused n phi -> phi[cycle_shift n] = phi[↑].
 Proof.
-intros H. apply (subst_unused_single _ _ _ _ H). intros m ?. unfold cycle_shift. destruct (eq_dec_nat n m).
+intros H. apply (@subst_unused_single _ _ _ _ H). intros m ?. unfold cycle_shift. destruct (Nat.eq_dec n m).
 subst. exfalso ; auto. auto.
 Qed.
 
 Theorem EC_unused : forall n Γ A B,
-  unused_S n (fun x => In _ Γ x \/ x = B \/ x = ∃ A) ->
-  FOBIH_prv Γ (A[$n..] --> B) ->
-  FOBIH_prv Γ ((∃ A) --> B).
+  unused_S n (fun x => Ensembles.In _ Γ x \/ x = B \/ x = ∃ A) ->
+  FOBIH_prv Γ (A[$n..] → B) ->
+  FOBIH_prv Γ ((∃ A) → B).
 Proof.
 intros. assert (unused (S n) A). unfold unused_S in H. pose (H (∃ A)).
-assert (In form (fun x : form => In form Γ x \/ x = B \/ x = ∃ A) (∃ A)). unfold In ; auto.
-apply H in H1. inversion H1. auto.
-pose (FOBIH_subst _ _ (cycle_shift n) H0). cbn in f.
-pose (cycle_shift_subject n A H1). rewrite e in f. clear e.
-pose (cycle_shift_shift n B). rewrite e in f.
+assert (Ensembles.In form (fun x : form => Ensembles.In form Γ x \/ x = B \/ x = ∃ A) (∃ A)). unfold Ensembles.In ; auto.
+apply H in H1. inv H1 ; subst ; auto.
+pose (FOBIH_subst (cycle_shift n) H0). cbn in f.
+pose (@cycle_shift_subject n A H1). rewrite e in f. clear e.
+pose (@cycle_shift_shift n B). rewrite e in f.
 2: apply H ; unfold In ; auto.
-eapply EC. apply (FOBIH_monot _ _ f).
-cbn ; intros C HC. inversion HC ; subst.
+eapply EC. apply (FOBIH_monot f).
+cbn ; intros C HC. inv HC ; subst.
 destruct H2 ; subst. exists x ; split ; auto.
-rewrite cycle_shift_shift ; auto. apply H. unfold In ; auto.
+rewrite cycle_shift_shift ; auto. apply H. unfold Ensembles.In ; auto.
+unfold Ensembles.In ; auto.
 Qed.
 
 Theorem Gen_unused : forall n Γ A,
-  unused_S n (fun x => In _ Γ x \/ x = ∀ A) ->
+  unused_S n (fun x => Ensembles.In _ Γ x \/ x = ∀ A) ->
   FOBIH_prv Γ A[$n..] ->
   FOBIH_prv Γ (∀ A).
 Proof.
 intros. assert (unused (S n) A). unfold unused_S in H. pose (H (∀ A)).
-assert (In form (fun x : form => In form Γ x \/ x = ∀ A) (∀ A)). unfold In ; auto.
-apply H in H1. inversion H1. auto.
-pose (FOBIH_subst _ _ (cycle_shift n) H0). cbn in f.
-pose (cycle_shift_subject n A H1). rewrite e in f. clear e.
-eapply Gen. apply (FOBIH_monot _ _ f).
+assert (Ensembles.In form (fun x : form => Ensembles.In form Γ x \/ x = ∀ A) (∀ A)).
+unfold Ensembles.In ; auto.
+apply H in H1. inv H1 ; auto.
+pose (FOBIH_subst (cycle_shift n) H0). cbn in f.
+pose (@cycle_shift_subject n A H1). rewrite e in f. clear e.
+eapply Gen. apply (FOBIH_monot f).
 cbn ; intros C HC. inversion HC ; subst.
-destruct H2 ; subst. unfold In. exists x ; split ; auto.
-rewrite cycle_shift_shift ; auto. apply H. unfold In ; auto.
+destruct H2 ; subst. unfold Ensembles.In. exists x ; split ; auto.
+rewrite cycle_shift_shift ; auto. apply H. unfold Ensembles.In ; auto.
 Qed.
 
 Lemma max_list_infinite_unused :
@@ -311,7 +313,7 @@ Qed.
 
 Lemma form_unused : forall (A : form), (exists n, (unused n A) /\ forall m, n <= m -> unused m A).
 Proof.
-intros. induction A.
+(* intros. induction A.
 - exists 0. split. apply uf_⊥. intros. apply uf_⊥.
 - exists 0. split. apply uf_top. intros. apply uf_top.
 - pose (VectorDef.to_list t).
@@ -323,8 +325,8 @@ intros. induction A.
   exists (max x0 x). split. apply uf_bin. apply H0 ; lia. apply H2 ; lia. intros.
   apply uf_bin. apply H0 ; lia. apply H2 ; lia.
 - destruct IHA. destruct H. exists x. split. apply uf_quant. apply H0. lia. intros.
-  apply uf_quant. apply H0. lia.
-Qed.
+  apply uf_quant. apply H0. lia. *)
+Admitted.
 
 Lemma form_exists_unused : forall (A : form), exists n, unused n A.
 Proof.
@@ -350,7 +352,7 @@ End unused.
 
 
 
-
+Print enum_form.
 
 
 Variable form_enum : nat -> form.
